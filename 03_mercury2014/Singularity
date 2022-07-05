@@ -1,0 +1,35 @@
+Bootstrap: docker
+From: ubuntu:xenial
+
+%post
+    ## Install all necessary dependencies.
+    apt-get update
+    apt-get -y install cmake g++ make python time gawk ca-certificates git
+    rm -rf /var/lib/apt/lists/*
+
+    git clone -b ipc-2018-seq-sat https://bitbucket.org/ipc2018-classical/team6.git /planner
+
+    ## Build your planner
+    cd /planner
+    ./build DOWNWARD_BITWIDTH=64
+
+%runscript
+    ## The runscript is called whenever the container is used to solve
+    ## an instance.
+
+    DOMAINFILE=$1
+    PROBLEMFILE=$2
+    PLANFILE=$3
+
+    ## Call your planner.
+    /planner/plan $DOMAINFILE $PROBLEMFILE $PLANFILE
+
+## Update the following fields with meta data about your submission.
+## Please use the same field names and use only one line for each value.
+%labels
+Name        mercury2014
+Description 2014 version of Mercury (sat)
+Authors     Michael Katz <michael.katz1@ibm.com> and Joerg Hoffmann <hoffmann@cs.uni-saarland.de>
+SupportsDerivedPredicates no
+SupportsQuantifiedPreconditions no
+SupportsQuantifiedEffects no

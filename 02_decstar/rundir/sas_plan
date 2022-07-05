@@ -1,0 +1,8 @@
+(start-painting pos-0-0 g0 n2 n1)
+(move-painting pos-0-0 pos-0-1 g0 n1 n0)
+(end-painting g0)
+(move pos-0-1 pos-1-1)
+(move pos-1-1 pos-2-1)
+(start-painting pos-2-1 g1 n1 n0)
+(end-painting g1)
+; cost = 7 (unit cost)

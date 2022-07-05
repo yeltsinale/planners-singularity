@@ -1,0 +1,63 @@
+Bootstrap: docker
+From: ubuntu:bionic
+
+%post
+    ## Install all necessary dependencies.
+    apt-get update
+    apt-get -y install --no-install-recommends cmake g++ make python ca-certificates git
+    rm -rf /var/lib/apt/lists/*
+
+    git clone -b ipc-2018-seq-opt https://bitbucket.org/ipc2018-classical/team44.git /planner
+
+    ## Build planner.
+    cd /planner
+    ./build.py release64
+
+    ## Build h2-mutexes preprocessor.
+    mkdir -p builds/h2-mutexes/
+    cd builds/h2-mutexes/
+    cmake ../../h2-mutexes/
+    make -j4
+
+    ## Strip binaries.
+    strip --strip-all /planner/builds/release64/bin/downward \
+        /planner/builds/h2-mutexes/bin/preprocess
+
+    ## Remove packages unneeded for running the planner.
+    apt-get -y autoremove cmake g++ make
+    rm -rf /var/lib/apt/lists/*
+
+    ## Only keep essential binaries.
+    mkdir -p /compiled-planner/builds/release64
+    mv /planner/driver /planner/fast-downward.py /compiled-planner
+    mv /planner/builds/release64/bin /compiled-planner/builds/release64
+    mv /planner/builds/h2-mutexes/bin/preprocess /compiled-planner
+    rm -rf /planner
+    mv /compiled-planner /planner
+
+%runscript
+    ## The runscript is called whenever the container is used to solve
+    ## an instance.
+
+    DOMAINFILE=$1
+    PROBLEMFILE=$2
+    PLANFILE=$3
+
+    ## Call your planner.
+    /planner/fast-downward.py \
+        --build=release64 \
+        --plan-file $PLANFILE \
+        --transform-task /planner/preprocess \
+        --alias seq-opt-scorpion \
+        $DOMAINFILE \
+        $PROBLEMFILE
+
+## Update the following fields with meta data about your submission.
+## Please use the same field names and use only one line for each value.
+%labels
+Name        Scorpion
+Description Saturated cost partitioning over abstraction heuristics
+Authors     Jendrik Seipp <jendrik.seipp@unibas.ch>
+SupportsDerivedPredicates no
+SupportsQuantifiedPreconditions no
+SupportsQuantifiedEffects no

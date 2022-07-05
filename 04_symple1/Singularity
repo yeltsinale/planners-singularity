@@ -1,0 +1,37 @@
+Bootstrap: docker
+From: ubuntu:bionic
+
+%post
+    ## Install all necessary dependencies.
+    apt-get update
+    apt-get -y install cmake g++ make python automake autoconf libtool time gawk flex bison ca-certificates git
+    rm -rf /var/lib/apt/lists/*
+
+    git clone -b ipc-2018-seq-sat https://bitbucket.org/ipc2018-classical/team3.git /planner
+
+    gcc --version
+
+    ## Build your planner
+    cd /planner
+    ./build -j4
+
+%runscript
+    ## The runscript is called whenever the container is used to solve
+    ## an instance.
+
+    DOMAINFILE=$1
+    PROBLEMFILE=$2
+    PLANFILE=$3
+
+    ## Call your planner.
+    /planner/plan $DOMAINFILE $PROBLEMFILE $PLANFILE
+
+## Update the following fields with meta data about your submission.
+## Please use the same field names and use only one line for each value.
+%labels
+Name        Symple-1
+Description Symple performs a bidirectional A* search based on Edge-Valued Multi-Valued Decision Diagrams (EVMDDs).
+Authors     David Speck, Florian Geißer and Robert Mattmüller <speckd,geisserf,mattmuel>@informatik.uni-freiburg.de
+SupportsDerivedPredicates no
+SupportsQuantifiedPreconditions no
+SupportsQuantifiedEffects no
